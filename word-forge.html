@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Word Forge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Space+Mono:wght@400;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --font-display:'Fraunces',Georgia,serif;
+  --font-mono:'Space Mono',monospace;
+  --font-ui:'Manrope',system-ui,sans-serif;
+  --bg1:#15151f;--bg2:#1d1d2b;--surface:#1f1f30;--surface2:#262640;
+  --ink:#f2f2f7;--ink-soft:#a6a6c2;--accent:#e8c24d;--accent-ink:#15151f;--border:#33334d;
+  --radius:14px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{min-height:100vh;color:var(--ink);font-family:var(--font-ui);-webkit-font-smoothing:antialiased;}
+button{font-family:inherit;border:none;background:none;padding:0;margin:0;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+button:disabled{cursor:not-allowed;}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px;}
+.wrap{max-width:520px;margin:0 auto;padding:22px 18px 56px;min-height:100vh;display:flex;flex-direction:column;}
+
+.topbar{display:flex;align-items:center;gap:12px;margin-bottom:8px;}
+.iconbtn{width:40px;height:40px;border-radius:50%;border:2px solid var(--border);background:var(--surface);font-size:1.1rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.topbar-title{flex:1;min-width:0;}
+.topbar-title h1{margin:0;font-family:var(--font-display);font-size:1.15rem;font-weight:700;}
+.topbar-title p{margin:2px 0 0;font-size:.78rem;color:var(--ink-soft);}
+.topbar-stat{font-family:var(--font-mono);font-size:.82rem;color:var(--accent);font-weight:700;white-space:nowrap;}
+
+.home-hero{text-align:center;padding:14px 4px 26px;}
+.home-kicker{font-family:var(--font-mono);font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin:0 0 10px;}
+.home-title{font-family:var(--font-display);font-size:2.5rem;line-height:1;margin:0;font-weight:700;}
+.home-sub{color:var(--ink-soft);margin:12px 0 0;font-size:.92rem;line-height:1.5;}
+.home-stats{display:flex;justify-content:center;gap:22px;margin-top:18px;font-family:var(--font-mono);font-size:.85rem;color:var(--ink-soft);}
+.home-stats b{color:var(--ink);}
+
+.tierlist{display:flex;flex-direction:column;gap:14px;margin-top:4px;}
+.tier-card{width:100%;border-radius:var(--radius);padding:16px;text-align:left;display:flex;align-items:center;gap:14px;}
+.tier-card[disabled]{opacity:.55;}
+.tier-num{font-family:var(--font-display);font-size:1.7rem;font-weight:700;opacity:.4;width:34px;flex-shrink:0;}
+.tier-info{flex:1;min-width:0;}
+.tier-name{font-family:var(--font-display);font-weight:700;font-size:1.1rem;margin:0 0 2px;}
+.tier-material{font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;opacity:.75;margin:0 0 9px;}
+.tier-bar{height:6px;border-radius:4px;overflow:hidden;}
+.tier-bar-fill{height:100%;display:block;border-radius:4px;}
+.tier-progress-text{font-family:var(--font-mono);font-size:.68rem;margin-top:6px;opacity:.85;}
+.tier-lock{font-size:1.25rem;flex-shrink:0;opacity:.85;}
+
+.levelgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;}
+.levelbtn{aspect-ratio:1;border-radius:10px;border:2px solid var(--border);background:var(--surface);font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:.92rem;}
+.levelbtn .stars{font-size:.55rem;letter-spacing:1px;color:var(--accent);}
+.levelbtn.completed{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);}
+.levelbtn.completed .stars{color:var(--accent-ink);}
+.levelbtn.locked{opacity:.4;}
+
+.cluecard{background:var(--surface);border-radius:var(--radius);padding:18px 18px 16px;margin:8px 0 24px;border:2px solid var(--border);}
+.cluecard .lvl{font-family:var(--font-mono);font-size:.7rem;color:var(--accent);text-transform:uppercase;letter-spacing:.12em;margin:0 0 8px;}
+.cluecard .clue{margin:0;font-size:1.02rem;line-height:1.45;}
+
+.board.shake{animation:shake .4s;}
+.slots{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:26px;}
+.slot{width:38px;height:46px;border-radius:8px;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-weight:700;font-size:1.2rem;background:var(--surface2);}
+.slot.filled{border-style:solid;border-color:var(--accent);background:var(--surface);}
+
+.tiles{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:24px;min-height:56px;}
+.tile{width:42px;height:50px;border-radius:10px;background:var(--surface);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-weight:700;font-size:1.25rem;box-shadow:0 3px 0 var(--border);transition:transform .1s;user-select:none;}
+.tile:active{transform:translateY(2px);box-shadow:0 1px 0 var(--border);}
+.tile.used{visibility:hidden;pointer-events:none;}
+
+.controls{display:flex;gap:10px;justify-content:center;}
+.btn{font-family:var(--font-ui);font-weight:700;font-size:.84rem;border-radius:10px;padding:11px 16px;border:2px solid var(--border);background:var(--surface);}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);}
+.btn:disabled{opacity:.4;}
+
+.overlay{position:fixed;inset:0;background:rgba(8,8,14,.62);display:flex;align-items:center;justify-content:center;z-index:50;padding:20px;}
+.modal{background:var(--surface);border-radius:18px;padding:30px 26px;max-width:380px;width:100%;text-align:center;border:2px solid var(--border);}
+.modal h2{font-family:var(--font-display);margin:0 0 6px;font-size:1.5rem;}
+.word-reveal{font-family:var(--font-mono);letter-spacing:.1em;font-size:1.3rem;color:var(--accent);margin:10px 0;font-weight:700;}
+.starsrow{font-size:2rem;margin:14px 0;letter-spacing:6px;}
+.starsrow span{display:inline-block;opacity:.25;}
+.starsrow span.on{opacity:1;animation:pop .35s ease backwards;}
+.modalbtns{display:flex;flex-direction:column;gap:10px;margin-top:18px;}
+
+@keyframes pop{from{transform:scale(0);}to{transform:scale(1);}}
+@keyframes shake{10%,90%{transform:translateX(-1px);}20%,80%{transform:translateX(3px);}30%,50%,70%{transform:translateX(-5px);}40%,60%{transform:translateX(5px);}}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.001ms !important;transition-duration:.001ms !important;}}
+
+.pat-ruled{background:repeating-linear-gradient(0deg,transparent 0 31px,var(--bg2) 31px 32px),var(--bg1);}
+.pat-graph{background:linear-gradient(var(--bg2) 1px,transparent 1px) 0 0/26px 26px,linear-gradient(90deg,var(--bg2) 1px,transparent 1px) 0 0/26px 26px,var(--bg1);}
+.pat-dots-soft{background:radial-gradient(circle,var(--bg2) 2px,transparent 2.5px) 0 0/24px 24px,var(--bg1);}
+.pat-crosshatch{background:repeating-linear-gradient(45deg,var(--bg2) 0 1px,transparent 1px 14px),repeating-linear-gradient(-45deg,var(--bg2) 0 1px,transparent 1px 14px),var(--bg1);}
+.pat-pegboard{background:radial-gradient(circle,var(--bg2) 3px,transparent 3.5px) 0 0/34px 34px,var(--bg1);}
+.pat-planks{background:repeating-linear-gradient(90deg,var(--bg1) 0 70px,var(--bg2) 70px 74px);}
+.pat-rivets{background:radial-gradient(circle at 12px 12px,var(--accent) 0 2px,transparent 3px) 0 0/44px 44px,var(--bg1);}
+.pat-hazard{background:repeating-linear-gradient(45deg,var(--bg2) 0 16px,var(--bg1) 16px 32px);}
+.pat-chalk-grid{background:linear-gradient(var(--border) 1px,transparent 1px) 0 0/42px 42px,linear-gradient(90deg,var(--border) 1px,transparent 1px) 0 0/42px 42px,var(--bg1);}
+.pat-chalk-arcs{background:radial-gradient(circle at 0 0,transparent 58px,var(--bg2) 59px,var(--bg2) 60px,transparent 61px) 0 0/110px 110px,var(--bg1);}
+.pat-smudge{background:radial-gradient(ellipse at 25% 20%,var(--bg2) 0%,transparent 50%),radial-gradient(ellipse at 78% 60%,var(--bg2) 0%,transparent 45%),radial-gradient(ellipse at 50% 92%,var(--bg2) 0%,transparent 40%),var(--bg1);}
+.pat-cleave{background:repeating-linear-gradient(70deg,var(--bg1) 0 26px,var(--bg2) 26px 28px);}
+.pat-ember{background:radial-gradient(circle,var(--accent) 1.5px,transparent 2px) 0 0/28px 28px,radial-gradient(circle,var(--bg2) 1px,transparent 1.5px) 14px 14px/28px 28px,var(--bg1);}
+.pat-crack{background:repeating-linear-gradient(115deg,transparent 0 38px,var(--bg2) 38px 40px),repeating-linear-gradient(25deg,transparent 0 54px,var(--bg2) 54px 56px),var(--bg1);}
+.pat-drip{background:repeating-linear-gradient(180deg,var(--bg1) 0 50px,var(--bg2) 50px 54px);}
+.pat-matrix{background:linear-gradient(var(--bg2) 1px,transparent 1px) 0 0/20px 20px,linear-gradient(90deg,var(--bg2) 1px,transparent 1px) 0 0/20px 20px,var(--bg1);}
+.pat-circuit{background:linear-gradient(var(--bg2) 1px,transparent 1px) 0 0/50px 50px,linear-gradient(90deg,var(--bg2) 1px,transparent 1px) 0 0/50px 50px,radial-gradient(circle,var(--accent) 1px,transparent 1.5px) 25px 25px/50px 50px,var(--bg1);}
+.pat-scanline{background:repeating-linear-gradient(0deg,var(--bg2) 0 1px,transparent 1px 6px),var(--bg1);}
+.pat-glitch{background:linear-gradient(90deg,var(--bg2) 0 30%,transparent 30%) 0 0/140px 100%,linear-gradient(90deg,transparent 0 60%,var(--bg2) 60% 64%,transparent 64%) 0 0/220px 100%,var(--bg1);}
+
+@media (max-width:380px){
+  .home-title{font-size:2.1rem;}
+  .levelgrid{grid-template-columns:repeat(4,1fr);}
+}
+</style>
+</head>
+<body class="pat-dots-soft">
+<div id="app"></div>
+<script>
+/* ---------- word data: [word, clue] pairs ---------- */
+var WORDS = {
+  easy: [
+    ["cat","A small pet that meows"],["dog","A loyal companion that barks"],
+    ["sun","Lights up the day sky"],["run","Move fast on your feet"],
+    ["big","Opposite of small"],["red","Color of a fire truck"],
+    ["hat","Worn on your head"],["pen","Used to write in ink"],
+    ["cup","Holds your coffee"],["box","A square container"],
+    ["fish","Swims and breathes through gills"],["bird","Flies and chirps"],
+    ["tree","Has leaves and branches"],["book","You read this for a story"],
+    ["lamp","Lights up a room"],["door","You open it to enter"],
+    ["milk","White drink from a cow"],["ring","Worn on a finger"],
+    ["song","Something you sing"],["star","Twinkles in the night sky"],
+    ["moon","Glows in the night sky"],["frog","Hops and says ribbit"],
+    ["gold","A shiny precious metal"],["wind","Moves the trees and leaves"],
+    ["sand","Found on a beach"],["leaf","Falls from a tree in autumn"],
+    ["rain","Falls from clouds"],["snow","Cold and white in winter"],
+    ["cake","Eaten at birthday parties"],["fire","Hot, bright, and gives warmth"]
+  ],
+  medium: [
+    ["apple","A red or green fruit"],["beach","Sandy place by the ocean"],
+    ["chair","You sit on it"],["dance","Move your body to music"],
+    ["eagle","A large bird of prey"],["flame","The tip of a fire"],
+    ["grape","Small fruit in a bunch"],["house","A place where you live"],
+    ["jacket","Worn to stay warm outside"],["kitten","A baby cat"],
+    ["ladder","Used to climb up high"],["mirror","Shows your reflection"],
+    ["orange","A round citrus fruit"],["pencil","Used to write or draw"],
+    ["planet","Earth is one of these"],["queen","Female ruler of a kingdom"],
+    ["rabbit","Hops and has long ears"],["silver","A shiny gray metal"],
+    ["tiger","Big cat with orange stripes"],["violet","A shade of purple"],
+    ["winter","The coldest season"],["yellow","Color of a ripe banana"],
+    ["zigzag","A sharp back and forth line"],["basket","Used to carry fruit or laundry"],
+    ["bottle","Holds water or juice"],["candle","Burns with a small flame"],
+    ["dragon","A mythical fire breathing beast"],["forest","Full of many trees"],
+    ["garden","Where flowers are grown"],["hammer","Used to hit a nail"]
+  ],
+  hard: [
+    ["airplane","Flies through the sky"],["backpack","Carried on your shoulders"],
+    ["calendar","Shows the days and months"],["dinosaur","An ancient giant reptile"],
+    ["elephant","The largest land animal"],["fountain","Water shoots up from it"],
+    ["hospital","Where you go when you are sick"],["keyboard","Used to type on a computer"],
+    ["language","A way people communicate"],["magnetic","Attracts metal objects"],
+    ["mountain","A very tall landform"],["notebook","Used for writing notes"],
+    ["painting","Art made with a brush"],["pumpkin","Carved at Halloween"],
+    ["question","You ask this for an answer"],["rainbow","A colorful arc after rain"],
+    ["sandwich","Bread with filling inside"],["sunshine","Warm light from the sun"],
+    ["treasure","Hidden valuable riches"],["vacation","A relaxing trip away from home"],
+    ["volcano","Erupts with hot lava"],["wardrobe","A piece of furniture for clothes"],
+    ["dolphin","A smart and playful sea mammal"],["penguin","A flightless bird of the arctic"],
+    ["gorilla","A large strong ape"],["giraffe","Has a very long neck"],
+    ["kangaroo","Hops and carries a joey"],["squirrel","Collects nuts for winter"],
+    ["buffalo","A large grazing animal"],["octopus","Has eight arms in the sea"]
+  ],
+  veryhard: [
+    ["butterfly","Has colorful wings"],["chemistry","The science of substances"],
+    ["adventure","An exciting journey"],["discovery","Finding something new"],
+    ["telephone","Used to make calls"],["microscope","Magnifies tiny things"],
+    ["helicopter","Flies with spinning blades"],["strawberry","A small red sweet fruit"],
+    ["basketball","A sport played with a hoop"],["watermelon","A large juicy summer fruit"],
+    ["dictionary","Lists the meanings of words"],["restaurant","A place to eat a meal out"],
+    ["university","A school of higher education"],["television","Watched for shows and movies"],
+    ["chocolate","A sweet treat made from cocoa"],["continent","A huge landmass like Asia"],
+    ["instrument","Used to make music"],["playground","Where kids go to play outside"],
+    ["thermometer","Measures temperature"],["grandfather","The father of your mother or father"],
+    ["grandmother","The mother of your mother or father"],["application","A form, or a software program"],
+    ["celebration","A festive event"],["photography","The art of taking pictures"],
+    ["imagination","Creative thinking in your mind"],["information","Facts and details"],
+    ["examination","A test of your knowledge"],["organization","A structured group of people"],
+    ["refrigerator","Keeps your food cold"],["environment","The natural world around us"]
+  ],
+  extreme: [
+    ["extraordinary","Far beyond what is usual"],["communication","Sharing ideas or information"],
+    ["transformation","A dramatic change in form"],["responsibility","A duty you must handle"],
+    ["entrepreneur","Someone who starts their own business"],["unconventional","Breaking away from tradition"],
+    ["incomprehensible","Impossible to make sense of"],["disproportionate","Out of proportion or balance"],
+    ["acknowledgement","Admitting that something is true"],["sophistication","Highly refined complexity"],
+    ["simultaneously","Occurring at the exact same time"],["characteristic","A typical defining feature"],
+    ["misunderstanding","A mix up in meaning"],["congratulations","Words said to celebrate success"],
+    ["administration","The management of an organization"],["transportation","Moving people or goods"],
+    ["representative","Someone who acts on behalf of others"],["qualification","A skill needed for a job"],
+    ["demonstration","Showing how something works"],["multiplication","Repeated addition in math"],
+    ["classification","Sorting things into categories"],["civilization","An advanced and organized society"],
+    ["deforestation","The clearing away of forests"],["globalization","The world becoming interconnected"],
+    ["hospitalization","Being admitted for medical care"],["personification","Giving human traits to objects"],
+    ["procrastination","Delaying tasks you should do"],["accomplishment","A successful achievement"],
+    ["recommendation","Advice on what to choose"],["interpretation","Explaining the meaning of something"]
+  ]
+};
+
+var TIER_DEFS = [
+  {key:"easy",     label:"Easy",      material:"Notebook", words:WORDS.easy},
+  {key:"medium",   label:"Medium",    material:"Workshop",  words:WORDS.medium},
+  {key:"hard",     label:"Hard",      material:"Slate",     words:WORDS.hard},
+  {key:"veryhard", label:"Very Hard", material:"Forge",     words:WORDS.veryhard},
+  {key:"extreme",  label:"Extreme",   material:"Cipher",    words:WORDS.extreme}
+];
+
+var PATTERNS_BY_TIER = {
+  easy:     ["pat-ruled","pat-graph","pat-dots-soft","pat-crosshatch"],
+  medium:   ["pat-pegboard","pat-planks","pat-rivets","pat-hazard"],
+  hard:     ["pat-chalk-grid","pat-chalk-arcs","pat-smudge","pat-cleave"],
+  veryhard: ["pat-ember","pat-crack","pat-drip","pat-hazard"],
+  extreme:  ["pat-matrix","pat-circuit","pat-scanline","pat-glitch"]
+};
+
+var THEMES = {
+  home:     {bg1:"#15151f",bg2:"#1d1d2b",surface:"#1f1f30",surface2:"#262640",ink:"#f2f2f7",inkSoft:"#a6a6c2",accent:"#e8c24d",accentInk:"#15151f",border:"#33334d"},
+  easy:     {bg1:"#eaf1ed",bg2:"#d7e6de",surface:"#ffffff",surface2:"#eef5f1",ink:"#1f3a2e",inkSoft:"#52705f",accent:"#2f8f6b",accentInk:"#ffffff",border:"#bfd8cb"},
+  medium:   {bg1:"#eedfc2",bg2:"#dec79a",surface:"#fff8ec",surface2:"#f7ead0",ink:"#4a341b",inkSoft:"#8a6a3e",accent:"#c9772e",accentInk:"#ffffff",border:"#d8bd8b"},
+  hard:     {bg1:"#2e3b45",bg2:"#3e4f5c",surface:"#3a4954",surface2:"#445663",ink:"#edf2f4",inkSoft:"#aec1ca",accent:"#6fd6c4",accentInk:"#16302b",border:"#52677a"},
+  veryhard: {bg1:"#2a1414",bg2:"#41201a",surface:"#34191a",surface2:"#3d211f",ink:"#f7e8de",inkSoft:"#d8aa94",accent:"#e8552a",accentInk:"#2a1414",border:"#5a2e26"},
+  extreme:  {bg1:"#0b0b14",bg2:"#15152b",surface:"#181833",surface2:"#1f1f40",ink:"#e7e7ff",inkSoft:"#9c9cd0",accent:"#00e0c7",accentInk:"#0b0b14",border:"#2c2c55"}
+};
+
+var STORAGE_KEY = "wordforge_progress_v1";
+var progress = null;
+var state = {screen:"home"};
+var cur = null;
+
+function defaultProgress(){
+  var p = {};
+  TIER_DEFS.forEach(function(t){ p[t.key] = {stars:new Array(t.words.length).fill(0), unlocked:1}; });
+  return p;
+}
+
+async function loadProgress(){
+  try{
+    var res = await window.storage.get(STORAGE_KEY);
+    var parsed = res && res.value ? JSON.parse(res.value) : null;
+    progress = parsed || defaultProgress();
+    TIER_DEFS.forEach(function(t){
+      if(!progress[t.key]) progress[t.key] = {stars:new Array(t.words.length).fill(0), unlocked:1};
+      if(progress[t.key].stars.length !== t.words.length){
+        var old = progress[t.key].stars;
+        var fresh = new Array(t.words.length).fill(0);
+        for(var i=0;i<Math.min(old.length,fresh.length);i++) fresh[i] = old[i];
+        progress[t.key].stars = fresh;
+      }
+      if(typeof progress[t.key].unlocked !== "number") progress[t.key].unlocked = 1;
+    });
+  }catch(e){
+    progress = defaultProgress();
+  }
+}
+
+async function saveProgress(){
+  try{ await window.storage.set(STORAGE_KEY, JSON.stringify(progress)); }catch(e){}
+}
+
+function isTierUnlocked(idx){
+  if(idx===0) return true;
+  if(idx<0 || idx>=TIER_DEFS.length) return false;
+  var prev = TIER_DEFS[idx-1];
+  var need = Math.ceil(prev.words.length*0.3);
+  var done = progress[prev.key].stars.filter(function(s){return s>0;}).length;
+  return done>=need;
+}
+
+function applyTheme(key){
+  var t = THEMES[key];
+  var r = document.documentElement.style;
+  r.setProperty("--bg1",t.bg1); r.setProperty("--bg2",t.bg2);
+  r.setProperty("--surface",t.surface); r.setProperty("--surface2",t.surface2);
+  r.setProperty("--ink",t.ink); r.setProperty("--ink-soft",t.inkSoft);
+  r.setProperty("--accent",t.accent); r.setProperty("--accent-ink",t.accentInk);
+  r.setProperty("--border",t.border);
+}
+
+function shuffleArray(arr){
+  for(var i=arr.length-1;i>0;i--){
+    var j = Math.floor(Math.random()*(i+1));
+    var tmp = arr[i]; arr[i]=arr[j]; arr[j]=tmp;
+  }
+  return arr;
+}
+
+function makeTiles(word){
+  var chars = word.toUpperCase().split("");
+  var order;
+  do{ order = shuffleArray(chars.slice()); } while(chars.length>1 && order.join("")===chars.join(""));
+  return order.map(function(ch,i){ return {id:"t"+i, ch:ch, used:false}; });
+}
+
+/* ---------- navigation ---------- */
+function goHome(){ state = {screen:"home"}; cur = null; renderApp(); }
+function goLevels(tierIdx){ state = {screen:"levels", tierIdx:tierIdx}; cur = null; renderApp(); }
+function goGame(levelIdx){
+  var tierIdx = cur ? cur.tierIdx : state.tierIdx;
+  startLevel(tierIdx, levelIdx);
+}
+
+function startLevel(tierIdx, levelIdx){
+  var t = TIER_DEFS[tierIdx];
+  var pair = t.words[levelIdx];
+  var word = pair[0], clue = pair[1];
+  var tiles = makeTiles(word);
+  var pats = PATTERNS_BY_TIER[t.key];
+  var pattern = pats[levelIdx % pats.length];
+  cur = {
+    tierIdx:tierIdx, levelIdx:levelIdx, word:word.toUpperCase(), clue:clue,
+    tiles:tiles, slots:new Array(word.length).fill(null),
+    hints:0, shake:false, lastStars:0, pattern:pattern
+  };
+  state = {screen:"game"};
+  renderApp();
+}
+
+/* ---------- gameplay ---------- */
+function placeTile(id){
+  if(!cur) return;
+  var tile = cur.tiles.find(function(x){ return x.id===id; });
+  if(!tile || tile.used) return;
+  var idx = cur.slots.findIndex(function(s){ return s===null; });
+  if(idx===-1) return;
+  cur.slots[idx] = {tileId:tile.id, ch:tile.ch};
+  tile.used = true;
+  renderApp();
+  if(cur.slots.every(Boolean)) checkAnswer();
+}
+
+function removeFromSlot(idx){
+  if(!cur) return;
+  var s = cur.slots[idx];
+  if(!s) return;
+  var tile = cur.tiles.find(function(x){ return x.id===s.tileId; });
+  if(tile) tile.used = false;
+  cur.slots[idx] = null;
+  renderApp();
+}
+
+function shuffleTiles(){
+  if(!cur) return;
+  cur.tiles = shuffleArray(cur.tiles.slice());
+  renderApp();
+}
+
+function clearSlots(){
+  if(!cur) return;
+  cur.slots = cur.slots.map(function(){ return null; });
+  cur.tiles.forEach(function(t){ t.used = false; });
+  renderApp();
+}
+
+function useHint(){
+  if(!cur) return;
+  var idx = cur.slots.findIndex(function(s){ return s===null; });
+  if(idx===-1) return;
+  var correctCh = cur.word[idx];
+  var tile = cur.tiles.find(function(t){ return !t.used && t.ch===correctCh; });
+  if(!tile) return;
+  cur.slots[idx] = {tileId:tile.id, ch:tile.ch};
+  tile.used = true;
+  cur.hints++;
+  renderApp();
+  if(cur.slots.every(Boolean)) checkAnswer();
+}
+
+function checkAnswer(){
+  var answer = cur.slots.map(function(s){ return s.ch; }).join("");
+  if(answer === cur.word){
+    var stars = cur.hints===0 ? 3 : (cur.hints===1 ? 2 : 1);
+    cur.lastStars = stars;
+    var t = TIER_DEFS[cur.tierIdx];
+    var pr = progress[t.key];
+    if(stars > pr.stars[cur.levelIdx]) pr.stars[cur.levelIdx] = stars;
+    if(cur.levelIdx+1 < t.words.length) pr.unlocked = Math.max(pr.unlocked, cur.levelIdx+2);
+    saveProgress();
+    state.showComplete = true;
+    renderApp();
+  }else{
+    cur.shake = true;
+    renderApp();
+    setTimeout(function(){
+      if(!cur) return;
+      cur.shake = false;
+      cur.slots = cur.slots.map(function(){ return null; });
+      cur.tiles.forEach(function(t){ t.used = false; });
+      renderApp();
+    },500);
+  }
+}
+
+/* ---------- reset progress ---------- */
+function askReset(){ state.confirmReset = true; renderApp(); }
+function cancelReset(){ state.confirmReset = false; renderApp(); }
+async function doReset(){
+  progress = defaultProgress();
+  await saveProgress();
+  state.confirmReset = false;
+  renderApp();
+}
+
+/* ---------- rendering ---------- */
+function renderApp(){
+  var app = document.getElementById("app");
+  if(state.screen==="home"){
+    applyTheme("home");
+    document.body.className = "pat-dots-soft";
+    app.innerHTML = renderHome();
+  }else if(state.screen==="levels"){
+    var t = TIER_DEFS[state.tierIdx];
+    applyTheme(t.key);
+    document.body.className = PATTERNS_BY_TIER[t.key][0];
+    app.innerHTML = renderLevels();
+  }else if(state.screen==="game"){
+    var tg = TIER_DEFS[cur.tierIdx];
+    applyTheme(tg.key);
+    document.body.className = cur.pattern;
+    app.innerHTML = renderGame();
+  }
+  window.scrollTo(0,0);
+}
+
+function renderHome(){
+  var totalStars = TIER_DEFS.reduce(function(s,t){ return s+progress[t.key].stars.reduce(function(a,b){return a+b;},0); },0);
+  var maxStars = TIER_DEFS.reduce(function(s,t){ return s+t.words.length*3; },0);
+  var totalSolved = TIER_DEFS.reduce(function(s,t){ return s+progress[t.key].stars.filter(function(x){return x>0;}).length; },0);
+  var totalWords = TIER_DEFS.reduce(function(s,t){ return s+t.words.length; },0);
+
+  var cards = TIER_DEFS.map(function(t,i){
+    var th = THEMES[t.key];
+    var unlocked = isTierUnlocked(i);
+    var solved = progress[t.key].stars.filter(function(x){return x>0;}).length;
+    var pct = Math.round(solved/t.words.length*100);
+    var attrs = unlocked ? ('onclick="goLevels('+i+')"') : "disabled";
+    return '<button type="button" class="tier-card" '+attrs+' style="background:'+th.surface+';color:'+th.ink+';border:2px solid '+th.border+';">'
+      + '<div class="tier-num">'+String(i+1).padStart(2,"0")+'</div>'
+      + '<div class="tier-info">'
+      +   '<div class="tier-name">'+t.label+'</div>'
+      +   '<div class="tier-material" style="color:'+th.inkSoft+';">'+t.material+'</div>'
+      +   '<div class="tier-bar" style="background:'+th.bg2+';"><div class="tier-bar-fill" style="width:'+pct+'%;background:'+th.accent+';"></div></div>'
+      +   '<div class="tier-progress-text" style="color:'+th.inkSoft+';">'+solved+'/'+t.words.length+' solved</div>'
+      + '</div>'
+      + '<div class="tier-lock">'+(unlocked?"\u203a":"\uD83D\uDD12")+'</div>'
+      + '</button>';
+  }).join("");
+
+  return '<div class="wrap">'
+    + '<div class="home-hero">'
+    +   '<p class="home-kicker">A word unscramble game</p>'
+    +   '<h1 class="home-title">Word Forge</h1>'
+    +   '<p class="home-sub">Shape scrambled letters back into words.<br>Five materials. Five difficulties.</p>'
+    +   '<div class="home-stats"><span><b>'+totalSolved+'</b>/'+totalWords+' words</span><span><b>'+totalStars+'</b>/'+maxStars+' \u2605</span></div>'
+    + '</div>'
+    + '<div class="tierlist">'+cards+'</div>'
+    + '<button type="button" onclick="askReset()" style="margin-top:26px;align-self:center;color:var(--ink-soft);text-decoration:underline;font-size:.78rem;">Reset progress</button>'
+    + '</div>'
+    + (state.confirmReset ? renderResetConfirm() : "");
+}
+
+function renderResetConfirm(){
+  return '<div class="overlay"><div class="modal">'
+    + '<h2>Reset progress?</h2>'
+    + '<p style="color:var(--ink-soft);font-size:.88rem;">This clears every star and unlocked level across all five materials. This cannot be undone.</p>'
+    + '<div class="modalbtns">'
+    +   '<button type="button" class="btn primary" onclick="doReset()">Reset everything</button>'
+    +   '<button type="button" class="btn" onclick="cancelReset()">Cancel</button>'
+    + '</div></div></div>';
+}
+
+function renderLevels(){
+  var t = TIER_DEFS[state.tierIdx];
+  var pr = progress[t.key];
+  var solved = pr.stars.filter(function(x){return x>0;}).length;
+  var totalStarsTier = pr.stars.reduce(function(a,b){return a+b;},0);
+
+  var btns = t.words.map(function(w,i){
+    var starsCount = pr.stars[i];
+    var isUnlocked = i < pr.unlocked;
+    var isCompleted = starsCount>0;
+    var cls = "levelbtn" + (isCompleted?" completed":"") + (!isUnlocked?" locked":"");
+    var starsHtml = isCompleted ? ("\u2605".repeat(starsCount)+"\u2606".repeat(3-starsCount)) : (isUnlocked ? "&nbsp;" : "\uD83D\uDD12");
+    var attrs = isUnlocked ? ('onclick="goGame('+i+')"') : "disabled";
+    return '<button type="button" class="'+cls+'" '+attrs+'><span>'+(i+1)+'</span><span class="stars">'+starsHtml+'</span></button>';
+  }).join("");
+
+  return '<div class="wrap">'
+    + '<div class="topbar">'
+    +   '<button type="button" class="iconbtn" onclick="goHome()">\u2190</button>'
+    +   '<div class="topbar-title"><h1>'+t.label+'</h1><p>'+t.material+' \u00b7 '+solved+'/'+t.words.length+' solved</p></div>'
+    +   '<div class="topbar-stat">\u2605 '+totalStarsTier+'</div>'
+    + '</div>'
+    + '<div class="levelgrid" style="margin-top:18px;">'+btns+'</div>'
+    + '</div>';
+}
+
+function renderGame(){
+  var t = TIER_DEFS[cur.tierIdx];
+  var total = t.words.length;
+
+  var slotsHtml = cur.slots.map(function(s,i){
+    var attrs = s ? ('onclick="removeFromSlot('+i+')"') : "disabled";
+    return '<button type="button" class="slot'+(s?" filled":"")+'" '+attrs+'>'+(s?s.ch:"")+'</button>';
+  }).join("");
+
+  var tilesHtml = cur.tiles.map(function(tile){
+    var attrs = tile.used ? "disabled" : ('onclick="placeTile(\''+tile.id+'\')"');
+    return '<button type="button" class="tile'+(tile.used?" used":"")+'" '+attrs+'>'+tile.ch+'</button>';
+  }).join("");
+
+  var filledCount = cur.slots.filter(Boolean).length;
+  var canHint = filledCount < cur.slots.length;
+
+  return '<div class="wrap">'
+    + '<div class="topbar">'
+    +   '<button type="button" class="iconbtn" onclick="goLevels('+cur.tierIdx+')">\u2190</button>'
+    +   '<div class="topbar-title"><h1>'+t.label+'</h1><p>Level '+(cur.levelIdx+1)+' of '+total+'</p></div>'
+    +   '<div class="topbar-stat">Hints: '+cur.hints+'</div>'
+    + '</div>'
+    + '<div class="cluecard"><p class="lvl">Clue</p><p class="clue">'+cur.clue+'</p></div>'
+    + '<div class="board'+(cur.shake?" shake":"")+'">'
+    +   '<div class="slots">'+slotsHtml+'</div>'
+    +   '<div class="tiles">'+tilesHtml+'</div>'
+    + '</div>'
+    + '<div class="controls">'
+    +   '<button type="button" class="btn" onclick="shuffleTiles()">Shuffle</button>'
+    +   '<button type="button" class="btn" onclick="clearSlots()">Clear</button>'
+    +   '<button type="button" class="btn primary" onclick="useHint()" '+(canHint?"":"disabled")+'>Hint</button>'
+    + '</div>'
+    + '</div>'
+    + (state.showComplete ? renderComplete() : "");
+}
+
+function renderComplete(){
+  var t = TIER_DEFS[cur.tierIdx];
+  var isLastInTier = cur.levelIdx === t.words.length-1;
+  var starsHtml = [1,2,3].map(function(n){
+    return '<span class="'+(n<=cur.lastStars?"on":"")+'" style="animation-delay:'+(n*0.1)+'s">\u2605</span>';
+  }).join("");
+  var nextUnlockedNow = isLastInTier && cur.tierIdx+1 < TIER_DEFS.length && isTierUnlocked(cur.tierIdx+1);
+
+  var primaryBtn = (cur.levelIdx+1 < t.words.length)
+    ? '<button type="button" class="btn primary" onclick="goGame('+(cur.levelIdx+1)+')">Next level</button>'
+    : '<button type="button" class="btn primary" onclick="goLevels('+cur.tierIdx+')">Back to levels</button>';
+
+  return '<div class="overlay"><div class="modal">'
+    + '<h2>Solved it!</h2>'
+    + '<div class="word-reveal">'+cur.word+'</div>'
+    + '<div class="starsrow">'+starsHtml+'</div>'
+    + '<p style="color:var(--ink-soft);font-size:.85rem;">'+(cur.hints>0 ? ("Used "+cur.hints+" hint"+(cur.hints>1?"s":"")) : "No hints used \u2014 nice!")+'</p>'
+    + (nextUnlockedNow ? ('<p style="color:var(--accent);font-weight:700;font-size:.85rem;">New material unlocked: '+TIER_DEFS[cur.tierIdx+1].material+'!</p>') : "")
+    + '<div class="modalbtns">'
+    +   primaryBtn
+    +   '<button type="button" class="btn" onclick="goLevels('+cur.tierIdx+')">Level select</button>'
+    + '</div></div></div>';
+}
+
+/* ---------- init ---------- */
+async function init(){
+  document.getElementById("app").innerHTML = '<div class="wrap"><p style="padding-top:40vh;text-align:center;color:var(--ink-soft);">Loading\u2026</p></div>';
+  await loadProgress();
+  state = {screen:"home"};
+  renderApp();
+}
+init();
+</script>
+</body>
+</html>
